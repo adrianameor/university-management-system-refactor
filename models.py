@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     sid = db.Column(db.String(10), nullable=False,unique=True)
-    password = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(255), nullable=False) #Rafida - Step 4
     role = db.Column(db.String(10), nullable=False)
 
 # Define models

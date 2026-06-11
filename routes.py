@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user
 from flask_login import login_required, current_user
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
+from werkzeug.security import generate_password_hash, check_password_hash # Rafida - Step 1
 
 from models import (
     db,
@@ -35,7 +36,7 @@ def init_routes(app):
             
             user = User.query.filter_by(sid=sid).first()
 
-            if user and user.password== password and user.role == role:
+            if user and check_password_hash(user.password, password) and user.role == role: # Rafida - Step 3
                 login_user(user)
                 flash('Logged in successfully!', 'success')
                 return redirect(url_for('dashboard'))
@@ -312,7 +313,8 @@ def init_routes(app):
                     return redirect(url_for('add_student'))
                 
                 new_student = Student(ID=id, name=name, dept_name=dept_name, tot_cred=0)
-                new_user=User(sid=id,password=id,role="student")
+                hashed_password = generate_password_hash(id)  # Hash the password using the student's ID - step 2
+                new_user=User(sid=id,password=hashed_password,role="student")
                 db.session.add(new_student)
                 db.session.add(new_user)
                 db.session.commit()
