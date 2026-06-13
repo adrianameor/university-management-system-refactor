@@ -1,6 +1,53 @@
 # X-University_____University-Management-System
 University Management System: Flask-based platform with MySQL integration, featuring student and admin dashboards for profile viewing, course management, and administrative tasks.
 
+## Installation Guide
+
+1. Clone repository
+```bash
+git clone <your-repository-link>
+cd X-University_____University-Management-System
+```
+
+2. Create virtual environment
+```bash
+python -m venv venv
+```
+
+3. Activate virtual environment
+Windows:
+```bash
+venv\Scripts\activate
+```
+Mac/Linux:
+```bash
+source venv/bin/activate
+```
+
+4. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+5. Create .env file
+```bash
+SECRET_KEY=your_secret_key
+DATABASE_URL=mysql+mysqldb://root:@localhost/college
+FLASK_ENV=development
+DEBUG=True
+```
+
+6. Import database
+   Create database: college
+   Import college.sql
+
+7. Run application
+```bash
+python app.py
+```
+8. Open browser
+http://127.0.0.1:5000
+
 
 ## Home Page 
 
@@ -84,3 +131,50 @@ University Management System: Flask-based platform with MySQL integration, featu
 
 
 
+## Key Features
+
+- Secure login system for Admin and Student
+- Automatic role-based dashboard access (no manual role selection)
+- Admin dashboard for managing departments, instructors, and sections
+- Student dashboard for viewing academic information
+- MySQL database integration
+- Session-based authentication system
+- Responsive UI using Bootstrap
+
+---
+
+## Tech Stack
+
+- Backend: Flask (Python)
+- Frontend: HTML, CSS, Bootstrap
+- Database: MySQL
+- Template Engine: Jinja2
+- ORM/Connector: MySQLdb / SQLAlchemy
+
+---
+
+## System Architecture
+
+The system follows a client-server architecture:
+
+- Client: Browser rendering HTML templates
+- Server: Flask application handling logic and routing
+- Database: MySQL storing all system data
+
+Role-based authentication ensures different access levels for Admin and Student users.
+
+---
+
+## System Testing
+| Test Case           | Result |
+| ------------------- | ------ |
+| Login System        | Pass   |
+| Role Detection      | Pass   |
+| Admin Dashboard     | Pass   |
+| Student Dashboard   | Pass   |
+| Database Connection | Pass   |
+| UI Responsiveness   | Pass   |
+
+
+## Conclusion
+This project demonstrates a full-stack University Management System using Flask and MySQL. It includes role-based authentication, database integration, and responsive UI design for both Admin and Student users.

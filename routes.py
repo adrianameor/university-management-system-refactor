@@ -32,16 +32,16 @@ def init_routes(app):
         if request.method == 'POST':
             sid = request.form['sid']
             password = request.form['password']
-            role = request.form['role']  # Get role from form
+            #role = request.form['role']  deleted
             
             user = User.query.filter_by(sid=sid).first()
 
-            if user and check_password_hash(user.password, password) and user.role == role: # Rafida - Step 3
+            if user and user.password == password: # the original one have backup in login_backup.html
                 login_user(user)
                 flash('Logged in successfully!', 'success')
                 return redirect(url_for('dashboard'))
             else:
-                flash('Invalid username, password, or role', 'danger')
+                flash('Invalid ID or password', 'danger')
                 return render_template('login.html')
         return render_template('login.html')
 
