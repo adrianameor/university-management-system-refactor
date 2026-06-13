@@ -298,34 +298,69 @@ def init_routes(app):
     @app.route('/add_student', methods=['GET', 'POST'])
     @login_required
     def add_student():
-
         dept = Department.query.distinct(Department.dept_name).all()
-
         if request.method == "POST":
-            id = request.form['id']
-            name = request.form['name']
-            dept_name = request.form['dept']
-
-            try:
-                existing_course = Student.query.filter_by(ID=id).first()
-                if existing_course:
-                    flash("Student ID already exists. Please choose a different one.", "danger")
-                    return redirect(url_for('add_student'))
-                
-                new_student = Student(ID=id, name=name, dept_name=dept_name, tot_cred=0)
-                hashed_password = generate_password_hash(id)  # Hash the password using the student's ID - step 2
-                new_user=User(sid=id,password=hashed_password,role="student")
-                db.session.add(new_student)
-                db.session.add(new_user)
-                db.session.commit()
-                flash("Student Added Successfully!", "success")
-                return redirect('/students')
-            except SQLAlchemyError as e:
-                db.session.rollback()  
-                flash("Error occurred while Adding", "danger")
-                
-
-        return render_template('add_student.html', departments=dept)
+       
+            student_id = request.form.get('id', '').strip()
+            name = request.form.get('name', '').strip()
+            dept_name = request.form.get('dept', '').strip()
+        
+            has_error = False
+        
+        if not student_id:
+            flash('Student ID cannot be empty. Please enter a valid ID.', 'danger')
+            has_error = True
+        elif len(student_id) != 5:
+            flash('Student ID must be exactly 5 characters long.', 'danger')
+            has_error = True
+        elif not student_id.isalnum():
+            flash('Student ID must contain only letters and numbers (no special characters).', 'danger')
+            has_error = True
+        
+        if not name:
+            flash('Student name cannot be empty. Please enter a valid name.', 'danger')
+            has_error = True
+        elif len(name) > 50:
+            flash('Student name is too long. Maximum 50 characters allowed.', 'danger')
+            has_error = True
+        elif not all(c.isalpha() or c.isspace() or c == '-' for c in name):
+            flash('Student name can only contain letters, spaces, and hyphens.', 'danger')
+            has_error = True
+      
+        if not dept_name:
+            flash('Please select a department from the dropdown menu.', 'danger')
+            has_error = True
+        
+        if not has_error:
+            existing_student = Student.query.filter_by(ID=student_id).first()
+            if existing_student:
+                flash(f'Student ID {student_id} already exists. Please use a different ID.', 'danger')
+                has_error = True
+        
+        if has_error:
+            return render_template('add_student.html', departments=dept), 400
+       
+        try:
+            from werkzeug.security import generate_password_hash
+            hashed_password = generate_password_hash(student_id)
+            
+            new_student = Student(ID=student_id, name=name, dept_name=dept_name, tot_cred=0)
+            new_user = User(sid=student_id, password=hashed_password, role="student")
+            
+            db.session.add(new_student)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            flash(f'Student {name} (ID: {student_id}) added successfully!', 'success')
+            return redirect(url_for('student_list'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding student: {str(e)}', 'danger')
+            return redirect(url_for('add_student'))
+    
+    return render_template('add_student.html', departments=dept)
+        
 
 
     @app.route('/delete_student/<string:ID>', methods=['GET', 'POST'])
