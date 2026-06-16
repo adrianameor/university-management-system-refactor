@@ -226,76 +226,76 @@ def init_routes(app):
     def add_instructor():
         dept = Department.query.distinct(Department.dept_name).all()
         if request.method == "POST":
-           instructor_id = request.form.get('id', '').strip()
-           name = request.form.get('name', '').strip()
-           dept_name = request.form.get('dept', '').strip()
-           salary = request.form.get('salary', '').strip()
-        
-           has_error = False
-        
-        if not instructor_id:
-            flash('Instructor ID cannot be empty. Please enter a valid ID.', 'danger')
-            has_error = True
-        elif len(instructor_id) != 5:
-            flash('Instructor ID must be exactly 5 characters long.', 'danger')
-            has_error = True
-        elif not instructor_id.isalnum():
-            flash('Instructor ID must contain only letters and numbers.', 'danger')
-            has_error = True
-        
-        if not name:
-            flash('Instructor name cannot be empty. Please enter a valid name.', 'danger')
-            has_error = True
-        elif len(name) > 50:
-            flash('Instructor name is too long. Maximum 50 characters allowed.', 'danger')
-            has_error = True
-        elif not all(c.isalpha() or c.isspace() or c == '-' for c in name):
-            flash('Instructor name can only contain letters, spaces, and hyphens.', 'danger')
-            has_error = True
-        
-        if not dept_name:
-            flash('Please select a department from the dropdown menu.', 'danger')
-            has_error = True
-        
-        if salary:
+            instructor_id = request.form.get('id', '').strip()
+            name = request.form.get('name', '').strip() 
+            dept_name = request.form.get('dept', '').strip()
+            salary = request.form.get('salary', '').strip()
+            
+            has_error = False
+            
+            if not instructor_id:
+                flash('Instructor ID cannot be empty. Please enter a valid ID.', 'danger')
+                has_error = True
+            elif len(instructor_id) != 5:
+                flash('Instructor ID must be exactly 5 characters long.', 'danger')
+                has_error = True
+            elif not instructor_id.isalnum():
+                flash('Instructor ID must contain only letters and numbers.', 'danger')
+                has_error = True
+            
+            if not name:
+                flash('Instructor name cannot be empty. Please enter a valid name.', 'danger')
+                has_error = True
+            elif len(name) > 50:
+                flash('Instructor name is too long. Maximum 50 characters allowed.', 'danger')
+                has_error = True
+            elif not all(c.isalpha() or c.isspace() or c == '-' for c in name):
+                flash('Instructor name can only contain letters, spaces, and hyphens.', 'danger')
+                has_error = True
+            
+            if not dept_name:
+                flash('Please select a department from the dropdown menu.', 'danger')
+                has_error = True
+            
+            if salary:
+                try:
+                    salary_value = float(salary)
+                    if salary_value < 0:
+                        flash('Salary cannot be negative.', 'danger')
+                        has_error = True
+                    elif salary_value > 999999:
+                        flash('Salary is too high. Maximum allowed is 999,999.', 'danger')
+                        has_error = True
+                except ValueError:
+                    flash('Salary must be a valid number.', 'danger')
+                    has_error = True
+            else:
+                flash('Salary cannot be empty.', 'danger')
+                has_error = True
+           
+            if not has_error:
+                existing_instructor = Instructor.query.filter_by(ID=instructor_id).first()
+                if existing_instructor:
+                    flash(f'Instructor ID {instructor_id} already exists. Please use a different ID.', 'danger')
+                    has_error = True
+            
+            if has_error:
+                return render_template('add_instructor.html', departments=dept), 400
+           
             try:
-                salary_value = float(salary)
-                if salary_value < 0:
-                    flash('Salary cannot be negative.', 'danger')
-                    has_error = True
-                elif salary_value > 999999:
-                    flash('Salary is too high. Maximum allowed is 999,999.', 'danger')
-                    has_error = True
-            except ValueError:
-                flash('Salary must be a valid number.', 'danger')
-                has_error = True
-        else:
-            flash('Salary cannot be empty.', 'danger')
-            has_error = True
-       
-        if not has_error:
-            existing_instructor = Instructor.query.filter_by(ID=instructor_id).first()
-            if existing_instructor:
-                flash(f'Instructor ID {instructor_id} already exists. Please use a different ID.', 'danger')
-                has_error = True
+                new_instructor = Instructor(ID=instructor_id, name=name, dept_name=dept_name, salary=float(salary))
+                db.session.add(new_instructor)
+                db.session.commit()
+                
+                flash(f'Instructor {name} (ID: {instructor_id}) added successfully!', 'success')
+                return redirect(url_for('instructors'))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error adding instructor: {str(e)}', 'danger')
+                return redirect(url_for('add_instructor'))
         
-        if has_error:
-            return render_template('add_instructor.html', departments=dept), 400
-       
-        try:
-            new_instructor = Instructor(ID=instructor_id, name=name, dept_name=dept_name, salary=float(salary))
-            db.session.add(new_instructor)
-            db.session.commit()
-            
-            flash(f'Instructor {name} (ID: {instructor_id}) added successfully!', 'success')
-            return redirect(url_for('instructor_list'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error adding instructor: {str(e)}', 'danger')
-            return redirect(url_for('add_instructor'))
-    
-    return render_template('add_instructor.html', departments=dept)
+        return render_template('add_instructor.html', departments=dept)
 
 
     @app.route('/delete_instructor/<string:ID>', methods=['GET', 'POST'])
@@ -346,12 +346,11 @@ def init_routes(app):
     def add_student():
         dept = Department.query.distinct(Department.dept_name).all()
         if request.method == "POST":
-       
-            student_id = request.form.get('id', '').strip()
-            name = request.form.get('name', '').strip()
-            dept_name = request.form.get('dept', '').strip()
+           student_id = request.form.get('id', '').strip()
+           name = request.form.get('name', '').strip()
+           dept_name = request.form.get('dept', '').strip()
         
-            has_error = False
+           has_error = False
         
         if not student_id:
             flash('Student ID cannot be empty. Please enter a valid ID.', 'danger')
@@ -398,14 +397,14 @@ def init_routes(app):
             db.session.commit()
             
             flash(f'Student {name} (ID: {student_id}) added successfully!', 'success')
-            return redirect(url_for('student_list'))
+            return redirect(url_for('students'))
             
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding student: {str(e)}', 'danger')
             return redirect(url_for('add_student'))
     
-    return render_template('add_student.html', departments=dept)
+        return render_template('add_student.html', departments=dept)
         
 
 
