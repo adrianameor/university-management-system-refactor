@@ -51,17 +51,17 @@
 
                         <div class="form-floating mb-3">
                             <input type="text" 
-                                   id="id" 
-                                   class="form-control form-control-lg" 
-                                   placeholder=" "  
-                                   name="id" 
-                                   required 
-                                   pattern="[A-Za-z0-9]{5}" 
-                                   maxlength="5" 
-                                   minlength="5"
-                                   title="Student ID must be exactly 5 alphanumeric characters (e.g., 12345 or S1234)">
-                            <label for="id">Student's ID (5 characters)</label>
-                            <small class="text-muted">Enter exactly 5 letters or numbers (e.g., 12345, S1234)</small>
+                                id="id" 
+                                class="form-control form-control-lg" 
+                                placeholder=" "  
+                                name="id" 
+                                required 
+                                pattern="[0-9]{5}" 
+                                maxlength="5" 
+                                minlength="5"
+                                title="Student ID must be exactly 5 digits">
+                            <label for="id">Student's ID (5 digits)</label>
+                            <small class="text-muted">Enter exactly 5 digits (e.g., 12345)</small>
                         </div>
 
                         <!-- name input -->
@@ -72,7 +72,7 @@
                                    placeholder=" "  
                                    name="name" 
                                    required 
-                                   maxlength="50"
+                                   maxlength="100"
                                    pattern="[A-Za-z\s\-]+"
                                    title="Name can only contain letters, spaces, and hyphens (e.g., John Doe or Mary-Anne)">
                             <label for="name">Student's Name</label>

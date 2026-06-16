@@ -51,17 +51,17 @@
 
                         <div class="form-floating mb-3">
                             <input type="text" 
-                                   id="id" 
-                                   class="form-control form-control-lg" 
-                                   placeholder=" "  
-                                   name="id" 
-                                   required 
-                                   pattern="[A-Za-z0-9]{5}" 
-                                   maxlength="5" 
-                                   minlength="5"
-                                   title="Instructor ID must be exactly 5 alphanumeric characters">
-                            <label for="id">Instructor's ID (5 characters)</label>
-                            <small class="text-muted">Enter exactly 5 letters or numbers (e.g., I1234)</small>
+                                id="id" 
+                                class="form-control form-control-lg" 
+                                placeholder=" "  
+                                name="id" 
+                                required 
+                                pattern="[0-9]{5}" 
+                                maxlength="5" 
+                                minlength="5"
+                                title="Instructor ID must be exactly 5 digits">
+                            <label for="id">Instructor's ID (5 digits)</label>
+                            <small class="text-muted">Enter exactly 5 digits (e.g., 54321)</small>
                         </div>
 
                         <!-- name input -->
@@ -72,7 +72,7 @@
                                    placeholder=" "  
                                    name="name" 
                                    required 
-                                   maxlength="50"
+                                   maxlength="100"
                                    pattern="[A-Za-z\s\.\-]+"
                                    title="Name can only contain letters, spaces, dots, and hyphens">
                             <label for="name">Instructor's Name</label>
@@ -97,7 +97,7 @@
                                    placeholder=" "  
                                    name="salary" 
                                    required 
-                                   min="0" 
+                                   min="1" 
                                    max="999999"
                                    step="0.01"
                                    title="Salary must be a positive number">

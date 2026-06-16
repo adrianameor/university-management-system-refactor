@@ -1,6 +1,15 @@
 # X-University_____University-Management-System
 University Management System: Flask-based platform with MySQL integration, featuring student and admin dashboards for profile viewing, course management, and administrative tasks.
 
+## Environment Variables
+
+Create a `.env` file in the project root directory:
+
+```env
+SECRET_KEY=your_secret_key
+DATABASE_URL=mysql+mysqldb://root:@localhost/college
+```
+
 ## Installation Guide
 
 1. Clone repository
@@ -48,6 +57,15 @@ python app.py
 8. Open browser
 http://127.0.0.1:5000
 
+## Default Test Accounts
+
+### Admin Account
+ID: 1012
+Password: admin012
+
+### Student Account
+ID: 12211
+Password: 12211
 
 ## Home Page 
 
@@ -133,14 +151,14 @@ http://127.0.0.1:5000
 
 ## Key Features
 
-- Secure login system for Admin and Student
-- Automatic role-based dashboard access (no manual role selection)
-- Admin dashboard for managing departments, instructors, and sections
-- Student dashboard for viewing academic information
-- MySQL database integration
-- Session-based authentication system
-- Responsive UI using Bootstrap
-
+- Secure authentication using password hashing
+- Automatic role-based dashboard access
+- Student management functionality
+- Instructor management functionality
+- Department and course management
+- Input validation and error handling
+- Responsive user interface
+- Separate dashboards for administrators and students
 ---
 
 ## Tech Stack
@@ -166,14 +184,18 @@ Role-based authentication ensures different access levels for Admin and Student 
 ---
 
 ## System Testing
-| Test Case           | Result |
-| ------------------- | ------ |
-| Login System        | Pass   |
-| Role Detection      | Pass   |
-| Admin Dashboard     | Pass   |
-| Student Dashboard   | Pass   |
-| Database Connection | Pass   |
-| UI Responsiveness   | Pass   |
+## System Testing
+
+| Test Case             | Description                                        | Result |
+|-----------------------|----------------------------------------------------|--------|
+| Login System          | Verify user authentication with valid credentials   | Pass |
+| Password Verification | Verify hashed passwords are validated correctly     | Pass |
+| Role Detection        | Verify automatic dashboard assignment based on role | Pass |
+| Admin Dashboard       | Verify administrator functions are accessible       | Pass |
+| Student Dashboard     | Verify student information is displayed correctly   | Pass |
+| Database Connection   | Verify successful MySQL database connectivity       | Pass |
+| Input Validation      | Verify invalid inputs are rejected appropriately    | Pass |
+| UI Responsiveness     | Verify interface adapts to different screen sizes   | Pass |
 
 
 ## Conclusion

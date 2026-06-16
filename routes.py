@@ -30,18 +30,20 @@ def init_routes(app):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
-            sid = request.form['sid']
-            password = request.form['password']
-            #role = request.form['role']  deleted
+            # Xiao Qi - Use .get() and .strip() to safely retrieve form input and remove extra spaces
+            sid = request.form.get('sid', '').strip()
+            password = request.form.get('password', '').strip()
             
             user = User.query.filter_by(sid=sid).first()
 
-            if user and user.password == password: # the original one have backup in login_backup.html
+            # Rafida - Step 3: add check password hash
+            # Xioa Qi - Remove role check
+            if user and check_password_hash(user.password, password): 
                 login_user(user)
                 flash('Logged in successfully!', 'success')
                 return redirect(url_for('dashboard'))
             else:
-                flash('Invalid ID or password', 'danger')
+                flash('Invalid username, or password ', 'danger')
                 return render_template('login.html')
         return render_template('login.html')
 
@@ -57,6 +59,9 @@ def init_routes(app):
                 return render_template("student.html", student=student, courses_taken=courses_taken)
             else:
                 return "Student not found", 404
+        else:
+            flash("Invalid role assigned to user.", "danger")
+            return redirect(url_for('login'))
 
     @app.route('/logout')
     @login_required
@@ -206,9 +211,44 @@ def init_routes(app):
         dept = Department.query.distinct(Department.dept_name).all()
 
         if request.method == "POST":
-            instructor.name = request.form['name']
-            instructor.dept_name = request.form['dept']
-            instructor.salary = request.form['salary']
+            name = request.form.get('name', '').strip()
+            dept_name = request.form.get('dept', '').strip()
+            salary = request.form.get('salary', '').strip()
+
+            if not name:
+                flash("Instructor name is required.", "danger")
+                return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            if len(name) > 50:
+                flash("Instructor name must not exceed 50 characters.", "danger")
+                return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            if not all(char.isalpha() or char.isspace() or char == '-' for char in name):
+                flash("Instructor name can only contain letters, spaces, and hyphens.", "danger")
+                return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            if not dept_name:
+                flash("Department must be selected.", "danger")
+                return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            if not salary:
+                flash("Salary is required.", "danger")
+                return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            try:
+                salary_value = float(salary)
+
+                if salary_value <= 0:
+                    flash("Salary must be a positive value.", "danger")
+                    return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            except ValueError:
+                flash("Salary must be a valid number.", "danger")
+                return render_template('update_instructor.html', instructor=instructor, departments=dept)
+
+            instructor.name = name
+            instructor.dept_name = dept_name
+            instructor.salary = salary_value
             try:
                 db.session.commit()
                 flash("Profile Updated Successfully!", "success")
@@ -224,77 +264,68 @@ def init_routes(app):
     @app.route('/add_instructor', methods=['GET', 'POST'])
     @login_required
     def add_instructor():
+
         dept = Department.query.distinct(Department.dept_name).all()
+
         if request.method == "POST":
             instructor_id = request.form.get('id', '').strip()
-            name = request.form.get('name', '').strip() 
+            name = request.form.get('name', '').strip()
             dept_name = request.form.get('dept', '').strip()
             salary = request.form.get('salary', '').strip()
-            
-            has_error = False
-            
+
             if not instructor_id:
-                flash('Instructor ID cannot be empty. Please enter a valid ID.', 'danger')
-                has_error = True
-            elif len(instructor_id) != 5:
-                flash('Instructor ID must be exactly 5 characters long.', 'danger')
-                has_error = True
-            elif not instructor_id.isalnum():
-                flash('Instructor ID must contain only letters and numbers.', 'danger')
-                has_error = True
-            
+                flash("Instructor ID is required.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
+            if len(instructor_id) != 5 or not instructor_id.isdigit():
+                flash("Instructor ID must be exactly 5 digits.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
             if not name:
-                flash('Instructor name cannot be empty. Please enter a valid name.', 'danger')
-                has_error = True
-            elif len(name) > 50:
-                flash('Instructor name is too long. Maximum 50 characters allowed.', 'danger')
-                has_error = True
-            elif not all(c.isalpha() or c.isspace() or c == '-' for c in name):
-                flash('Instructor name can only contain letters, spaces, and hyphens.', 'danger')
-                has_error = True
-            
+                flash("Instructor name is required.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
+            if len(name) > 50:
+                flash("Instructor name must not exceed 50 characters.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
+            if not all(char.isalpha() or char.isspace() or char == '-' for char in name):
+                flash("Instructor name can only contain letters, spaces, and hyphens.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
             if not dept_name:
-                flash('Please select a department from the dropdown menu.', 'danger')
-                has_error = True
-            
-            if salary:
-                try:
-                    salary_value = float(salary)
-                    if salary_value < 0:
-                        flash('Salary cannot be negative.', 'danger')
-                        has_error = True
-                    elif salary_value > 999999:
-                        flash('Salary is too high. Maximum allowed is 999,999.', 'danger')
-                        has_error = True
-                except ValueError:
-                    flash('Salary must be a valid number.', 'danger')
-                    has_error = True
-            else:
-                flash('Salary cannot be empty.', 'danger')
-                has_error = True
-           
-            if not has_error:
+                flash("Department must be selected.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
+            if not salary:
+                flash("Salary is required.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+
+            try:
+                salary_value = float(salary)
+                if salary_value <= 0:
+                    flash("Salary must be a positive value.", "danger")
+                    return render_template('add_instructor.html', departments=dept)
+            except ValueError:
+                flash("Salary must be a valid number.", "danger")
+                return render_template('add_instructor.html', departments=dept)
+                
+            try:
                 existing_instructor = Instructor.query.filter_by(ID=instructor_id).first()
                 if existing_instructor:
-                    flash(f'Instructor ID {instructor_id} already exists. Please use a different ID.', 'danger')
-                    has_error = True
-            
-            if has_error:
-                return render_template('add_instructor.html', departments=dept), 400
-           
-            try:
-                new_instructor = Instructor(ID=instructor_id, name=name, dept_name=dept_name, salary=float(salary))
+                    flash("Instructor ID already exists. Please choose a different one.", "danger")
+                    return redirect(url_for('add_instructor'))
+                
+                new_instructor = Instructor(ID=instructor_id, name=name, dept_name=dept_name, salary=salary_value)
                 db.session.add(new_instructor)
                 db.session.commit()
+                flash("Instructor Added Successfully!", "success")
+                return redirect('/instructors')
+            except SQLAlchemyError as e:
+                db.session.rollback()  
+                flash("Error occurred while Adding", "danger")
                 
-                flash(f'Instructor {name} (ID: {instructor_id}) added successfully!', 'success')
-                return redirect(url_for('instructors'))
-                
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error adding instructor: {str(e)}', 'danger')
-                return redirect(url_for('add_instructor'))
-        
+
         return render_template('add_instructor.html', departments=dept)
 
 
@@ -327,9 +358,46 @@ def init_routes(app):
         dept = Department.query.distinct(Department.dept_name).all()
 
         if request.method == "POST":
-            student.name = request.form['name']
-            student.dept_name = request.form['dept']
-            student.tot_cred = request.form['cred']
+
+            name = request.form.get('name', '').strip()
+            dept_name = request.form.get('dept', '').strip()
+            total_credits = request.form.get('cred', '').strip()
+
+            if not name:
+                flash("Student name is required.", "danger")
+                return render_template('update_student.html', student=student, departments=dept)
+
+            if len(name) > 50:
+                flash("Student name must not exceed 50 characters.", "danger")
+                return render_template('update_student.html', student=student, departments=dept)
+
+            if not all(char.isalpha() or char.isspace() or char == '-' for char in name):
+                flash("Student name can only contain letters, spaces, and hyphens.", "danger")
+                return render_template('update_student.html', student=student, departments=dept)
+
+            if not dept_name:
+                flash("Department must be selected.", "danger")
+                return render_template('update_student.html', student=student, departments=dept)
+            
+            if not total_credits:
+                flash("Total credits is required.", "danger")
+                return render_template('update_student.html', student=student, departments=dept)
+
+            try:
+                credit_value = int(total_credits)
+
+                if credit_value < 0:
+                    flash("Total credits cannot be negative.", "danger")
+                    return render_template('update_student.html', student=student, departments=dept)
+
+            except ValueError:
+                flash("Total credits must be a valid number.", "danger")
+                return render_template('update_student.html', student=student, departments=dept)
+
+            student.name = name
+            student.dept_name = dept_name
+            student.tot_cred = credit_value
+
             try:
                 db.session.commit()
                 flash("Profile Updated Successfully!", "success")
@@ -344,68 +412,58 @@ def init_routes(app):
     @app.route('/add_student', methods=['GET', 'POST'])
     @login_required
     def add_student():
+
         dept = Department.query.distinct(Department.dept_name).all()
+
         if request.method == "POST":
-           student_id = request.form.get('id', '').strip()
-           name = request.form.get('name', '').strip()
-           dept_name = request.form.get('dept', '').strip()
-        
-           has_error = False
-        
-        if not student_id:
-            flash('Student ID cannot be empty. Please enter a valid ID.', 'danger')
-            has_error = True
-        elif len(student_id) != 5:
-            flash('Student ID must be exactly 5 characters long.', 'danger')
-            has_error = True
-        elif not student_id.isalnum():
-            flash('Student ID must contain only letters and numbers (no special characters).', 'danger')
-            has_error = True
-        
-        if not name:
-            flash('Student name cannot be empty. Please enter a valid name.', 'danger')
-            has_error = True
-        elif len(name) > 50:
-            flash('Student name is too long. Maximum 50 characters allowed.', 'danger')
-            has_error = True
-        elif not all(c.isalpha() or c.isspace() or c == '-' for c in name):
-            flash('Student name can only contain letters, spaces, and hyphens.', 'danger')
-            has_error = True
-      
-        if not dept_name:
-            flash('Please select a department from the dropdown menu.', 'danger')
-            has_error = True
-        
-        if not has_error:
-            existing_student = Student.query.filter_by(ID=student_id).first()
-            if existing_student:
-                flash(f'Student ID {student_id} already exists. Please use a different ID.', 'danger')
-                has_error = True
-        
-        if has_error:
-            return render_template('add_student.html', departments=dept), 400
-       
-        try:
-            from werkzeug.security import generate_password_hash
-            hashed_password = generate_password_hash(student_id)
+            student_id = request.form.get('id', '').strip()
+            name = request.form.get('name', '').strip()
+            dept_name = request.form.get('dept', '').strip()
+
+            if not student_id:
+                flash("Student ID is required.", "danger")
+                return render_template('add_student.html', departments=dept)
+
+            if len(student_id) != 5 or not student_id.isdigit():
+                flash("Student ID must be exactly 5 digits.", "danger")
+                return render_template('add_student.html', departments=dept)
+
+            if not name:
+                flash("Student name is required.", "danger")
+                return render_template('add_student.html', departments=dept)
+
+            if len(name) > 50:
+                flash("Student name must not exceed 50 characters.", "danger")
+                return render_template('add_student.html', departments=dept)
+
+            if not all(char.isalpha() or char.isspace() or char == '-' for char in name):
+                flash("Student name can only contain letters, spaces, and hyphens.", "danger")
+                return render_template('add_student.html', departments=dept)
+
+            if not dept_name:
+                flash("Department must be selected.", "danger")
+                return render_template('add_student.html', departments=dept)
             
-            new_student = Student(ID=student_id, name=name, dept_name=dept_name, tot_cred=0)
-            new_user = User(sid=student_id, password=hashed_password, role="student")
-            
-            db.session.add(new_student)
-            db.session.add(new_user)
-            db.session.commit()
-            
-            flash(f'Student {name} (ID: {student_id}) added successfully!', 'success')
-            return redirect(url_for('students'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error adding student: {str(e)}', 'danger')
-            return redirect(url_for('add_student'))
-    
+            try:
+                existing_student = Student.query.filter_by(ID=student_id).first()
+                if existing_student:
+                    flash("Student ID already exists. Please choose a different one.", "danger")
+                    return redirect(url_for('add_student'))
+                
+                new_student = Student(ID=student_id, name=name, dept_name=dept_name, tot_cred=0)
+                hashed_password = generate_password_hash(student_id)  # Hash the password using the student's ID - step 2
+                new_user=User(sid=student_id,password=hashed_password,role="student")
+                db.session.add(new_student)
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Student Added Successfully!", "success")
+                return redirect('/students')
+            except SQLAlchemyError as e:
+                db.session.rollback()  
+                flash("Error occurred while Adding", "danger")
+                
+
         return render_template('add_student.html', departments=dept)
-        
 
 
     @app.route('/delete_student/<string:ID>', methods=['GET', 'POST'])

@@ -42,7 +42,7 @@ Students
             <td>{{stu.tot_cred}}</td>
             <td>{{ stu.advisor.instructor.name if stu.advisor else "N/A" }}</td>
             <td><a href="/update_student/{{stu.ID}}"><button class="btn btn-sm btn-outline-info">Update</button> </a> </td>
-    <td><a href="/delete_student/{{stu.ID}}"><button onclick="return confirm('Are you sure to Delete Instructor');" class="btn btn-sm btn-outline-danger">Delete</button> </a> </td>
+    <td><a href="/delete_student/{{stu.ID}}"><button onclick="return confirm('Are you sure to Delete Student?');" class="btn btn-sm btn-outline-danger">Delete</button> </a> </td>
     
           </tr>
           {%endfor%}
